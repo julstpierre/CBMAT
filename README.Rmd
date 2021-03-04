@@ -13,7 +13,7 @@ knitr::opts_chunk$set(
 )
 ```
 
-# CBMAT
+# CBMAT: Copula Based Multivariate Association Test for bivariate mixed phenotypes
 
 <!-- badges: start -->
 [![Travis build status](https://travis-ci.com/julstpierre/CBMAT.svg?branch=master)](https://travis-ci.com/julstpierre/CBMAT)
@@ -24,12 +24,12 @@ knitr::opts_chunk$set(
 
 <!-- You can install the released version of CBMAT from [CRAN](https://CRAN.R-project.org) with: -->
 
-``` {r ,include=F}
-#install.packages("CBMAT")
+``` {r, eval=F, echo=F}
+install.packages("CBMAT")
 ```
 
-``` r
-# development version from [GitHub](https://github.com/)
+``` {r, eval=F}
+# development version from GitHub
 if (!requireNamespace("devtools")) install.packages("devtools")
 devtools::install_github("julstpierre/CBMAT")
 ```

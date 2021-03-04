@@ -1,7 +1,7 @@
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
-# CBMAT
+# CBMAT: Copula Based Multivariate Association Test for bivariate mixed phenotypes
 
 <!-- badges: start -->
 
