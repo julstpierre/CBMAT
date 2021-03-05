@@ -15,7 +15,7 @@ status](https://travis-ci.com/julstpierre/CBMAT.svg?branch=master)](https://trav
 <!-- You can install the released version of CBMAT from [CRAN](https://CRAN.R-project.org) with: -->
 
 ``` r
-# development version from [GitHub](https://github.com/)
+# development version from GitHub
 if (!requireNamespace("devtools")) install.packages("devtools")
 devtools::install_github("julstpierre/CBMAT")
 ```
