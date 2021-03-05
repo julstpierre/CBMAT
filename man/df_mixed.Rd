@@ -12,7 +12,7 @@ This data frame has 503 rows and the following 35 columns:
 \item{x1}{intercept}
 \item{x2}{discrete covariate}
 \item{x3}{continous covariate}
-\item{V1:V30}{genetic variants}
+\item{V1:V30}{30 consecutive SNPs sampled from a random genomic region within 500kbs of BRCA1 gene found on chromosome 17}
 }
 }
 \source{
@@ -25,9 +25,10 @@ df_mixed
 To simulate genotypes, we used the 1000 Genomes Project database.
 Variants within 500kbs of the BRCA1 gene, for which several known mutations
 are associated with a higher risk of developing breast, ovarian and prostate
-cancers, are selected. To avoid any multicollinearity, we pruned variants
+cancers, were selected. To avoid any multicollinearity, we pruned variants
 based on linkage disequilibrium r^2 > 0.7. Further, a total of 503 subjects
 with a European genetic ancestry are selected in order to avoid any population
-structure.
+structure. One discrete and one continuous traits were simulated using a gaussian copula
+to model the joint dependence. Finally, we also simulated one discrete and one continuous covariate.
 }
 \keyword{datasets}

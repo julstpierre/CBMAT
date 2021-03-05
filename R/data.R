@@ -6,8 +6,8 @@
 #' cancers, were selected. To avoid any multicollinearity, we pruned variants
 #' based on linkage disequilibrium r^2 > 0.7. Further, a total of 503 subjects
 #' with a European genetic ancestry are selected in order to avoid any population
-#' structure. One discrete and one continuous traits are simulated using a gaussian copula
-#' to model the joint dependence.
+#' structure. One discrete and one continuous traits were simulated using a gaussian copula
+#' to model the joint dependence. Finally, we also simulated one discrete and one continuous covariate.
 #' 
 #' @format This data frame has 503 rows and the following 35 columns:
 #' \describe{
@@ -16,7 +16,7 @@
 #'   \item{x1}{intercept}
 #'   \item{x2}{discrete covariate}
 #'   \item{x3}{continous covariate}
-#'   \item{V1:V30}{genetic variants}
+#'   \item{V1:V30}{30 consecutive SNPs sampled from a random genomic region within 500kbs of BRCA1 gene found on chromosome 17}
 #' }
 #' @source \url{https://www.internationalgenome.org/data/}
 "df_mixed"
