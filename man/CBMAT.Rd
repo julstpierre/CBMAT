@@ -2,7 +2,7 @@
 % Please edit documentation in R/mainCBMAT.R
 \name{CBMAT}
 \alias{CBMAT}
-\title{CBMAT main function}
+\title{CBMAT}
 \usage{
 CBMAT(
   y1 = NULL,
@@ -11,7 +11,7 @@ CBMAT(
   fam2 = NULL,
   x = cbind(rep(1, length(y1))),
   G = NULL,
-  copfit = c("Gaussian", "Clayton", "Franck", "Gumbell"),
+  copfit = c("Gaussian", "Clayton", "Frank", "Gumbel"),
   weight = FALSE,
   weight.para1 = 1,
   weight.para2 = 25,
@@ -42,14 +42,14 @@ CBMAT(
 
 \item{G}{matrix of SNPs (dimension:\eqn{n \times p}, with \eqn{p} the number of SNPs)}
 
-\item{copfit}{character, selects the copula(s) to use for modelling phenotypes dependence.
+\item{copfit}{character, identifies the copula(s) to use for modeling phenotypes dependence.
 Can be any one of the following:
 \itemize{
 \item \code{"Gaussian"}, Gaussian copula
 \item \code{"Clayton"}, Clayton copula
 \item \code{"Gumbel"}, Gumbel copula
 \item \code{"Frank"}, Frank copula
-}, Default: c("Gaussian", "Clayton", "Franck", "Gumbell")}
+}, Default: c("Gaussian", "Clayton", "Frank", "Gumbel")}
 
 \item{weight}{logical, should weights be used to increase power for rare variants, Default: FALSE}
 
@@ -60,9 +60,9 @@ Can be any one of the following:
 \item{pval.method}{character, which method to use to calculate p-value.
 Can be one of the following:
 \itemize{
-\item \code{"min"} (default)
-\item \code{"Fischer"}, Fischer
-\item \code{"MFKM"}, MFKM
+\item \code{"min"}, optimal p-value (default)
+\item \code{"Fisher"}, Fisher's method
+\item \code{"MFKM"}, MFKM method
 }}
 }
 \value{
@@ -77,7 +77,7 @@ A list containing results of the association test. The output list contains the 
 }
 }
 \description{
-FUNCTION_DESCRIPTION
+The main function for conduction Copula Based Multivariate Association Test.
 }
 \details{
 When "weight=TRUE", a weighted test is used. The weight for each SNP is a beta fuction of the corresponding minor allele frequency (MAF).

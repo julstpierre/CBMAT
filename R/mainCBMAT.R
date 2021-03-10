@@ -1,5 +1,5 @@
-#' @title CBMAT main function
-#' @description FUNCTION_DESCRIPTION
+#' @title CBMAT
+#' @description The main function for conduction Copula Based Multivariate Association Test.
 #' @param y1 vector designates the first phenotype (one row-entry per individual), of length \eqn{n}.
 #' @param fam1 a description of the error distribution and link function to be used in the marginal model of the first phenotype. Can be one of the following:
 #' \itemize{
@@ -17,23 +17,23 @@
 #' }
 #' @param x matrix of covariates including intercept (dimension:\eqn{n \times k}, with \eqn{k} the number of covariates), Default: cbind(rep(1, length(y1)))
 #' @param G matrix of SNPs (dimension:\eqn{n \times p}, with \eqn{p} the number of SNPs)
-#' @param copfit character, selects the copula(s) to use for modelling phenotypes dependence. 
+#' @param copfit character, identifies the copula(s) to use for modeling phenotypes dependence. 
 #' Can be any one of the following:
 #' \itemize{
 #' \item \code{"Gaussian"}, Gaussian copula
 #' \item \code{"Clayton"}, Clayton copula 
 #' \item \code{"Gumbel"}, Gumbel copula 
 #' \item \code{"Frank"}, Frank copula
-#' }, Default: c("Gaussian", "Clayton", "Franck", "Gumbell")
+#' }, Default: c("Gaussian", "Clayton", "Frank", "Gumbel")
 #' @param weight logical, should weights be used to increase power for rare variants, Default: FALSE
 #' @param weight.para1 alpha parameter of beta distribution used to simulate weights, Default: 1
 #' @param weight.para2 beta parameter of beta distribution used to simulate weights, Default: 25
 #' @param pval.method character, which method to use to calculate p-value.
 #' Can be one of the following:
 #' \itemize{
-#' \item \code{"min"} (default)
-#' \item \code{"Fischer"}, Fischer
-#' \item \code{"MFKM"}, MFKM
+#' \item \code{"min"}, optimal p-value (default)
+#' \item \code{"Fisher"}, Fisher's method
+#' \item \code{"MFKM"}, MFKM method
 #' }
 #' @details When "weight=TRUE", a weighted test is used. The weight for each SNP is a beta fuction of the corresponding minor allele frequency (MAF). 
 #' There are two parameters, weight.para1 and weight.para2, for beta function. For example, when weight.para1=weight.para2=0.5, the corresponding weight is 1/sqrt(MAF*(1-MAF)); 
@@ -56,14 +56,24 @@ CBMAT <- function(y1=NULL,
 				  fam2=NULL,
 				  x=cbind(rep(1,length(y1))),
 				  G=NULL,
-				  copfit=c("Gaussian","Clayton","Franck","Gumbell"),
+				  copfit=c("Gaussian","Clayton","Frank","Gumbel"),
 				  weight=FALSE,
 				  weight.para1=1,
 				  weight.para2=25,
 				  pval.method="min"
 )
 {
-
+  ## Parameter checks
+  check_pheno(y1) 
+  check_pheno(y2)
+  check_covariates(x, y1, "covariate")
+  check_covariates(G, y1, "genotype")
+  check_copula(copfit)
+  check_fam1(fam1)
+  check_fam2(fam2)
+  
+  #----- calculation of p-values ------------#
+  message("Starting association analysis...")
 	G<-as.matrix(G)
 	p<-dim(G)[2]
 	maf <- apply(G, 2, mean)/2
@@ -163,8 +173,8 @@ CBMAT <- function(y1=NULL,
 	cop.family <- sapply(1:length(copfit),function(i) switch (copfit[i],
         "Gaussian" = 1,
         "Clayton"  = 3,
-        "Franck"   = 5,
-        "Gumbell"  = 4)
+        "Frank"   = 5,
+        "Gumbel"  = 4)
 	)
 	cop<- VineCopula::BiCopSelect(F1(mu01.init,phi1.init,df1.init),F2(mu02.init,phi2.init,df2.init),familyset=cop.family,rotations=FALSE)$family
 	
@@ -309,7 +319,7 @@ CBMAT <- function(y1=NULL,
   	p.value <- p.MFKM
   }
 	#----------- p.Q.Fisher  ---------#
-  if (pval.method=="Fischer"){
+  if (pval.method=="Fisher"){
   	values <- t(matrix(unlist(f.rho.out[10,]),nrow=(2*p)))
   	Q.values <- cbind(Qs,values)
   	Q.Fisher <- sum(apply(Q.values,1,function(x) -2*log(davies.SURV(x[1],x[-1]))))
@@ -325,8 +335,8 @@ CBMAT <- function(y1=NULL,
 			  "gamma.y2"=pars.est[(k+2):(2*k+1)],
 			  "cop" = ifelse(cop==1,"Gaussian", 
 								  ifelse(cop==3,"Clayton", 
-								  ifelse(cop==5,"Franck",  
-								  ifelse(cop==4,"Gumbell"))))
+								  ifelse(cop==5,"Frank",  
+								  ifelse(cop==4,"Gumbel"))))
 			 )
 		)
 }

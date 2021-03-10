@@ -16,7 +16,9 @@ RoxygenNote: 7.1.1
 Suggests: 
     testthat (>= 3.0.0),
     LaplacesDemon,
-    rARPACK
+    rARPACK,
+    knitr,
+    rmarkdown
 Config/testthat/edition: 3
 Depends: 
     R (>= 2.10)
@@ -26,3 +28,4 @@ Imports:
     expm,
     CompQuadForm,
     copula
+VignetteBuilder: knitr
