@@ -1,0 +1,341 @@
+\documentclass{article}\usepackage[]{graphicx}\usepackage[]{color}
+% maxwidth is the original width if it is less than linewidth
+% otherwise use linewidth (to make sure the graphics do not exceed the margin)
+\makeatletter
+\def\maxwidth{ %
+  \ifdim\Gin@nat@width>\linewidth
+    \linewidth
+  \else
+    \Gin@nat@width
+  \fi
+}
+\makeatother
+
+\definecolor{fgcolor}{rgb}{0.345, 0.345, 0.345}
+\newcommand{\hlnum}[1]{\textcolor[rgb]{0.686,0.059,0.569}{#1}}%
+\newcommand{\hlstr}[1]{\textcolor[rgb]{0.192,0.494,0.8}{#1}}%
+\newcommand{\hlcom}[1]{\textcolor[rgb]{0.678,0.584,0.686}{\textit{#1}}}%
+\newcommand{\hlopt}[1]{\textcolor[rgb]{0,0,0}{#1}}%
+\newcommand{\hlstd}[1]{\textcolor[rgb]{0.345,0.345,0.345}{#1}}%
+\newcommand{\hlkwa}[1]{\textcolor[rgb]{0.161,0.373,0.58}{\textbf{#1}}}%
+\newcommand{\hlkwb}[1]{\textcolor[rgb]{0.69,0.353,0.396}{#1}}%
+\newcommand{\hlkwc}[1]{\textcolor[rgb]{0.333,0.667,0.333}{#1}}%
+\newcommand{\hlkwd}[1]{\textcolor[rgb]{0.737,0.353,0.396}{\textbf{#1}}}%
+\let\hlipl\hlkwb
+
+\usepackage{framed}
+\makeatletter
+\newenvironment{kframe}{%
+ \def\at@end@of@kframe{}%
+ \ifinner\ifhmode%
+  \def\at@end@of@kframe{\end{minipage}}%
+  \begin{minipage}{\columnwidth}%
+ \fi\fi%
+ \def\FrameCommand##1{\hskip\@totalleftmargin \hskip-\fboxsep
+ \colorbox{shadecolor}{##1}\hskip-\fboxsep
+     % There is no \\@totalrightmargin, so:
+     \hskip-\linewidth \hskip-\@totalleftmargin \hskip\columnwidth}%
+ \MakeFramed {\advance\hsize-\width
+   \@totalleftmargin\z@ \linewidth\hsize
+   \@setminipage}}%
+ {\par\unskip\endMakeFramed%
+ \at@end@of@kframe}
+\makeatother
+
+\definecolor{shadecolor}{rgb}{.97, .97, .97}
+\definecolor{messagecolor}{rgb}{0, 0, 0}
+\definecolor{warningcolor}{rgb}{1, 0, 1}
+\definecolor{errorcolor}{rgb}{1, 0, 0}
+\newenvironment{knitrout}{}{} % an empty environment to be redefined in TeX
+
+\usepackage{alltt}
+%\VignetteIndexEntry{CBMAT}
+%\VignetteEngine{knitr::knitr}
+
+\usepackage[svgnames]{xcolor}
+
+\usepackage[]{listings}
+\lstloadlanguages{bash,R}
+\lstset{
+  tabsize=4,
+  rulecolor=,
+  language=R,
+  basicstyle=\small\ttfamily,
+  columns=fixed,
+  showstringspaces=false,
+  extendedchars=true,
+  breaklines=true,
+  breakatwhitespace,
+  prebreak = \raisebox{0ex}[0ex][0ex]{\ensuremath{\hookleftarrow}},
+  showtabs=false,
+  showspaces=false,
+  showstringspaces=false,
+  keywordstyle=\color[rgb]{0.737,0.353,0.396},
+  commentstyle=\color[rgb]{0.133,0.545,0.133},
+  stringstyle=\color[rgb]{0.627,0.126,0.941},
+  backgroundcolor=\color[rgb]{0.97,0.97,0.97},
+}
+\lstMakeShortInline{|}
+
+
+\usepackage{hyperref}
+\hypersetup{%
+  linktocpage=false, % If true the page numbers in the toc are links
+                     % instead of the section headings.
+  pdfstartview=FitH,%
+  breaklinks=true, pageanchor=true, %
+  pdfpagemode=UseOutlines, plainpages=false, bookmarksnumbered, %
+  bookmarksopen=true, bookmarksopenlevel=1, hypertexnames=true, %
+  pdfhighlight=/O, %
+  pdfauthor={\textcopyright\ J.~St-Pierre}, %
+  colorlinks=true, %
+  urlcolor=SteelBlue, linkcolor=blue, citecolor=LimeGreen, %
+}
+
+\title{CBMAT: Copula Based Multivariate Association Test for bivariate mixed phenotypes}
+\author{Julien St-Pierre \& Karim Oualkacha}
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+\begin{document}
+
+
+
+\maketitle
+\tableofcontents
+
+\section{Introduction}
+\label{sec:introduction}
+
+CBMAT is an R package that contains methods to perform region-based genetic association of a bivariate phenotype. The dependence between phenotypes is modelled via copulas. Thus, CBMAT is a robust method for non-normality assumption of the traits. It also allows for testing association with a mixed discrete/continuous bivariate phenotype.
+
+The main user-visible function of the package is |CBMAT()| function which can be used to analyse genetic region/bivariate phenotype association in one go. CBMAT allows also for phenotype dependence modelling using four copulas
+
+\begin{itemize}
+  \item Gaussian copula;
+  \item Clayton copula;
+  \item Gumbel copula;
+  \item Frank copula.
+\end{itemize}
+
+CBMAT can be downloaded at \url{https://github.com/julstpierre/CBMAT} and can be installed using \texttt{devtools} package:
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.988, 0.988, 0.988}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlcom{# development version from GitHub}
+\hlkwa{if} \hlstd{(}\hlopt{!}\hlkwd{requireNamespace}\hlstd{(}\hlstr{"devtools"}\hlstd{))} \hlkwd{install.packages}\hlstd{(}\hlstr{"devtools"}\hlstd{)}
+\hlstd{devtools}\hlopt{::}\hlkwd{install_github}\hlstd{(}\hlstr{"julstpierre/CBMAT"}\hlstd{)}
+\end{alltt}
+\end{kframe}
+\end{knitrout}
+
+\section{Input Data}
+\label{sec:Input}
+Before running an association test with CBMAT, the following data is needed:
+\begin{itemize}
+\item \emph{Phenotypes}: phenotypes data should be present separately in the form of an R vector (one value for each individual). For example, here we show the first 6 entries of the phenotypes in the simulated data set \texttt{data\_mixed}:
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.988, 0.988, 0.988}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+  \hlcom{#Load and attach data}
+  \hlkwd{data}\hlstd{(data_mixed,}\hlkwc{package} \hlstd{=} \hlstr{"CBMAT"}\hlstd{)}
+  \hlkwd{attach}\hlstd{(data_mixed)}
+
+  \hlcom{#One binary phenotype}
+  \hlkwd{head}\hlstd{(y.bin)}
+\end{alltt}
+\begin{verbatim}
+## [1] 0 0 1 0 0 0
+\end{verbatim}
+\begin{alltt}
+  \hlcom{#Two continuous phenotypes}
+  \hlkwd{head}\hlstd{(y.gauss)}
+\end{alltt}
+\begin{verbatim}
+## [1]  0.1688371 -0.5772787  6.5811132  3.1596381  3.5511046  2.5926228
+\end{verbatim}
+\begin{alltt}
+  \hlkwd{head}\hlstd{(y.Gamma)}
+\end{alltt}
+\begin{verbatim}
+## [1] 2.54060075 1.12152345 4.98853560 0.07337192 2.34025750 0.33434987
+\end{verbatim}
+\end{kframe}
+\end{knitrout}
+\item \emph{Covariates}: covariates data should be present in the form of an $n\times k$ matrix, where $n$ represents the number of subjects and $k$ the number of covariates, including the intercept. For example, here we show the first 6 entries of the covariate matrix included in \texttt{data\_mixed}:
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.988, 0.988, 0.988}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+  \hlkwd{dim}\hlstd{(x)}
+\end{alltt}
+\begin{verbatim}
+## [1] 503   3
+\end{verbatim}
+\begin{alltt}
+  \hlkwd{head}\hlstd{(x)}
+\end{alltt}
+\begin{verbatim}
+##      [,1] [,2]        [,3]
+## [1,]    1    0 -0.35173586
+## [2,]    1    0 -1.10067195
+## [3,]    1    1  1.33908052
+## [4,]    1    1 -1.03802577
+## [5,]    1    1 -0.50020571
+## [6,]    1    1 -0.01141293
+\end{verbatim}
+\end{kframe}
+\end{knitrout}
+\item \emph{Genotype data}: SNPs genotype must be in the form of
+  an $n\times p$ matrix, where $n$ represents the number of subjects and $p$ the number of SNPs in the region of interest. For example, here we show the the first 6 entries of the first 10 SNPs of the genotype matrix included in \texttt{data\_mixed}:
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.988, 0.988, 0.988}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+  \hlkwd{dim}\hlstd{(G)}
+\end{alltt}
+\begin{verbatim}
+## [1] 503  30
+\end{verbatim}
+\begin{alltt}
+  \hlkwd{head}\hlstd{(G[,}\hlnum{1}\hlopt{:}\hlnum{10}\hlstd{])}
+\end{alltt}
+\begin{verbatim}
+##      V1 V2 V3 V4 V5 V6 V7 V8 V9 V10
+## [1,]  0  0  0  0  0  0  0  0  0   0
+## [2,]  0  0  0  0  0  0  0  0  0   0
+## [3,]  0  0  0  0  0  0  0  0  0   0
+## [4,]  0  0  0  0  0  0  0  0  0   0
+## [5,]  0  0  0  0  0  0  0  0  0   0
+## [6,]  0  0  0  0  0  1  0  0  0   0
+\end{verbatim}
+\end{kframe}
+\end{knitrout}
+\end{itemize}
+
+\section{Running CBMAT}
+\label{sec:Run-CBMAT}
+
+If CBMAT has been successfully installed, you can load it in an R session using 
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.988, 0.988, 0.988}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+  \hlkwd{library}\hlstd{(CBMAT)}
+\end{alltt}
+\end{kframe}
+\end{knitrout}
+
+Here we provide two simple examples of performing score tests while fitting generalized linear models (glms) under the null hypothesis of no association.
+
+\subsection{Using CBMAT for a bivariate continous phenotype}
+\label{sec:mixed}
+
+When both traits are continuous, one can run CBMAT for a region-based association test with the following code:
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.988, 0.988, 0.988}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlstd{cont.score} \hlkwb{<-} \hlkwd{CBMAT}\hlstd{(}\hlkwc{y1}\hlstd{=y.gauss,}
+                    \hlkwc{fam1}\hlstd{=}\hlstr{"gaussian()"}\hlstd{,}
+                    \hlkwc{y2}\hlstd{=y.Gamma,}
+                    \hlkwc{fam2}\hlstd{=}\hlstr{"Gamma(link=log)"}\hlstd{,}
+                    \hlkwc{x}\hlstd{=x,}
+                    \hlkwc{G}\hlstd{=G,}
+                    \hlkwc{copfit}\hlstd{=}\hlkwd{c}\hlstd{(}\hlstr{"Gaussian"}\hlstd{,}\hlstr{"Clayton"}\hlstd{,}\hlstr{"Frank"}\hlstd{,}\hlstr{"Gumbel"}\hlstd{),}
+                    \hlkwc{weight}\hlstd{=}\hlnum{FALSE}\hlstd{,}
+                    \hlkwc{weight.para1}\hlstd{=}\hlnum{1}\hlstd{,}
+                    \hlkwc{weight.para2}\hlstd{=}\hlnum{25}\hlstd{,}
+                    \hlkwc{pval.method}\hlstd{=}\hlstr{"min"}\hlstd{)}
+\end{alltt}
+
+
+{\ttfamily\noindent\itshape\color{messagecolor}{\#\# Starting association analysis...}}\begin{alltt}
+\hlstd{cont.score}
+\end{alltt}
+\begin{verbatim}
+## $p.value
+## [1] 0.5554563
+## 
+## $alpha
+## [1] 0.2672714
+## 
+## $tau
+## [1] 0.172244
+## 
+## $gamma.y1
+## [1] 1.773083 1.600274 1.815735
+## 
+## $gamma.y2
+## [1] 0.2501279 1.0248267 0.7646350
+## 
+## $cop
+## [1] "Gaussian"
+\end{verbatim}
+\end{kframe}
+\end{knitrout}
+
+\begin{itemize}
+\item |fam1| and |fam2| are characters specifying the error distributions and link functions to be used in each marginal model.
+
+\item |copfit| is a character vector that specifies the copula model(s) to use for modelling phenotypes dependence. The default option is to select between the Gaussian, Clayton, Frank and Gumbel copulas, based on AIC of the different models.
+
+\item |weight| is logical variable indication if weights should be used to increase power for rare variants.
+
+\item |weight.para1| and |weight.para2| are parameters of beta distribution used to simulate weights.
+
+\item |pval.method| is a character that specifies which method should be used to calculate p-value of score test. See [1] for further details. Can be one of the following:
+\begin{itemize}
+\item |pval.method = "min"|, optimal p-value (default)
+\item |pval.method = "Fischer"|, Fisher's method
+\item |pval.method = "MFKM"|, MFKM method
+\end{itemize}
+
+\end{itemize}
+
+\subsection{Using CBMAT for a mixed discrete-continuous bivariate phenotype}
+\label{sec:mixed}
+
+If one trait is discrete, it must be entered as the first phenotype, using a probit link function:
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.988, 0.988, 0.988}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlstd{mixed.score} \hlkwb{<-}\hlkwd{CBMAT}\hlstd{(}\hlkwc{y1}\hlstd{=y.bin,}
+                    \hlkwc{fam1}\hlstd{=}\hlstr{"binomial(link=probit)"}\hlstd{,}
+                    \hlkwc{y2}\hlstd{=y.Gamma,}
+                    \hlkwc{fam2}\hlstd{=}\hlstr{"Gamma(link=log)"}\hlstd{,}
+                    \hlkwc{x}\hlstd{=x,}
+                    \hlkwc{G}\hlstd{=G,}
+                    \hlkwc{copfit}\hlstd{=}\hlkwd{c}\hlstd{(}\hlstr{"Gaussian"}\hlstd{,}\hlstr{"Clayton"}\hlstd{,}\hlstr{"Frank"}\hlstd{,}\hlstr{"Gumbel"}\hlstd{),}
+                    \hlkwc{weight}\hlstd{=}\hlnum{FALSE}\hlstd{,}
+                    \hlkwc{weight.para1}\hlstd{=}\hlnum{1}\hlstd{,}
+                    \hlkwc{weight.para2}\hlstd{=}\hlnum{25}\hlstd{,}
+                    \hlkwc{pval.method}\hlstd{=}\hlstr{"min"}\hlstd{)}
+\end{alltt}
+
+
+{\ttfamily\noindent\itshape\color{messagecolor}{\#\# Starting association analysis...}}\begin{alltt}
+\hlstd{mixed.score}
+\end{alltt}
+\begin{verbatim}
+## $p.value
+## [1] 0.4540166
+## 
+## $alpha
+## [1] 0.3429957
+## 
+## $tau
+## [1] 0.1463919
+## 
+## $gamma.y1
+## [1] -1.991215  1.481467  1.881062
+## 
+## $gamma.y2
+## [1] 0.2565104 1.0136100 0.7674400
+## 
+## $cop
+## [1] "Clayton"
+\end{verbatim}
+\end{kframe}
+\end{knitrout}
+
+\begin{thebibliography}{9}
+\bibitem{Sun2019} Jianping Sun, Karim Oualkacha, Celia M.T. Greenwood, Lajmi Lakhal-CHaieb. \emph{Multivariate Association Test for Rare Variants Controlling for Cryptic and Family Relatedness}. Canadian Journal of Statistics, vol. 47, no. 1, Mar. 2019, pp. 90-107.
+
+\end{thebibliography}
+
+\end{document}

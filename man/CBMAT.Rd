@@ -66,10 +66,7 @@ Can be one of the following:
 }}
 }
 \value{
-A list containing results of the association test
-specified by the \code{method} parameter using the copula model for modelling primary-secondary dependency
-by the \code{copfit} parameter for the sampling mechanism \code{Design}. The
-output list contains the following results:
+A list containing results of the association test. The output list contains the following results:
 \itemize{
 \item \code{p.value}: the p-value of the region-based association test
 \item \code{gamma.y1}: the intercept and covariates estimates from the marginal model of the first phenotype

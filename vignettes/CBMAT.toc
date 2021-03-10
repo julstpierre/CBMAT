@@ -1,0 +1,5 @@
+\contentsline {section}{\numberline {1}Introduction}{1}{section.1}
+\contentsline {section}{\numberline {2}Input Data}{2}{section.2}
+\contentsline {section}{\numberline {3}Running CBMAT}{3}{section.3}
+\contentsline {subsection}{\numberline {3.1}Using CBMAT for a bivariate continous phenotype}{3}{subsection.3.1}
+\contentsline {subsection}{\numberline {3.2}Using CBMAT for a mixed discrete-continuous bivariate phenotype}{5}{subsection.3.2}

@@ -11,13 +11,13 @@ pacman::p_load(usethis)
 pacman::p_load(mvtnorm)
 pacman::p_load(VineCopula)
 
-set.seed(2345)
+set.seed(1245)
 #----------------------
 # Initialize parameters
 #----------------------
 p=30              # number of snps on the gene
-v=0.2             # fraction of snps that are non zero
-tau=0.34          # variance component parameter
+v=0.1             # fraction of snps that are non zero
+tau=0.3           # variance component parameter
 rho=0             # covariance parameter for beta
 cop=1             # gaussian copula to model joint dependence
 Kendall.tau = 0.2 # Kendall tau for joint dependence
@@ -55,7 +55,7 @@ u <- VineCopula::BiCopSim(nrow(G),cop,alpha)
 #-------------------------------------------------------
 #Simulate discrete trait using gaussian latent variable
 #-------------------------------------------------------
-mu1 <- c(x%*%gamma.y1+G%*%beta[1:p])
+mu1.c <- c(x%*%gamma.y1+G%*%beta[1:p])
 y1.c <- qnorm(u[,1],mu1.c,sqrt(phi1))
 y1 <- as.numeric(y1.c>quantile(y1.c,0.70))
 
@@ -68,5 +68,5 @@ y2 <- qgamma(u[,2],shape=1/phi2,scale=mu2*phi2)
 
 
 #write data
-df_mixed <- data.frame(y1,y2,x,G)
-usethis::use_data(df_mixed, overwrite = TRUE)
+data_mixed <- list("y.bin"=y1,"y.gauss"=y1.c,"y.Gamma"=y2,"x"=x,"G"=G)
+usethis::use_data(data_mixed, overwrite = TRUE)

@@ -1,0 +1,183 @@
+\documentclass{article}
+%\VignetteIndexEntry{CBMAT}
+%\VignetteEngine{knitr::knitr}
+
+\usepackage[svgnames]{xcolor}
+
+\usepackage[]{listings}
+\lstloadlanguages{bash,R}
+\lstset{
+  tabsize=4,
+  rulecolor=,
+  language=R,
+  basicstyle=\small\ttfamily,
+  columns=fixed,
+  showstringspaces=false,
+  extendedchars=true,
+  breaklines=true,
+  breakatwhitespace,
+  prebreak = \raisebox{0ex}[0ex][0ex]{\ensuremath{\hookleftarrow}},
+  showtabs=false,
+  showspaces=false,
+  showstringspaces=false,
+  keywordstyle=\color[rgb]{0.737,0.353,0.396},
+  commentstyle=\color[rgb]{0.133,0.545,0.133},
+  stringstyle=\color[rgb]{0.627,0.126,0.941},
+  backgroundcolor=\color[rgb]{0.97,0.97,0.97},
+}
+\lstMakeShortInline{|}
+
+
+\usepackage{hyperref}
+\hypersetup{%
+  linktocpage=false, % If true the page numbers in the toc are links
+                     % instead of the section headings.
+  pdfstartview=FitH,%
+  breaklinks=true, pageanchor=true, %
+  pdfpagemode=UseOutlines, plainpages=false, bookmarksnumbered, %
+  bookmarksopen=true, bookmarksopenlevel=1, hypertexnames=true, %
+  pdfhighlight=/O, %
+  pdfauthor={\textcopyright\ J.~St-Pierre}, %
+  colorlinks=true, %
+  urlcolor=SteelBlue, linkcolor=blue, citecolor=LimeGreen, %
+}
+
+\title{CBMAT: Copula Based Multivariate Association Test for bivariate mixed phenotypes}
+\author{Julien St-Pierre \& Karim Oualkacha}
+
+\begin{document}
+
+<<include=FALSE>>=
+library(knitr)
+opts_chunk$set(
+concordance=TRUE, background='gray99'
+)
+@
+
+\maketitle
+\tableofcontents
+
+\section{Introduction}
+\label{sec:introduction}
+
+CBMAT is an R package that contains methods to perform region-based genetic association of a bivariate phenotype. The dependence between phenotypes is modelled via copulas. Thus, CBMAT is a robust method for non-normality assumption of the traits. It also allows for testing association with a mixed discrete/continuous bivariate phenotype.
+
+The main user-visible function of the package is |CBMAT()| function which can be used to analyse genetic region/bivariate phenotype association in one go. CBMAT allows also for phenotype dependence modelling using four copulas
+
+\begin{itemize}
+  \item Gaussian copula;
+  \item Clayton copula;
+  \item Gumbel copula;
+  \item Frank copula.
+\end{itemize}
+
+CBMAT can be downloaded at \url{https://github.com/julstpierre/CBMAT} and can be installed using \texttt{devtools} package:
+<<install.pkg, eval=FALSE>>=
+# development version from GitHub
+if (!requireNamespace("devtools")) install.packages("devtools")
+devtools::install_github("julstpierre/CBMAT")
+@
+
+\section{Input Data}
+\label{sec:Input}
+Before running an association test with CBMAT, the following data is needed:
+\begin{itemize}
+\item \emph{Phenotypes}: phenotypes data should be present separately in the form of an R vector (one value for each individual). For example, here we show the first 6 entries of the phenotypes in the simulated data set \texttt{data\_mixed}:
+<<load.pheno>>=
+  #Load and attach data
+  data(data_mixed,package = "CBMAT")
+  attach(data_mixed)
+
+  #One binary phenotype
+  head(y.bin)
+  #Two continuous phenotypes
+  head(y.gauss)
+  head(y.Gamma)
+@
+\item \emph{Covariates}: covariates data should be present in the form of an $n\times k$ matrix, where $n$ represents the number of subjects and $k$ the number of covariates, including the intercept. For example, here we show the first 6 entries of the covariate matrix included in \texttt{data\_mixed}:
+<<load.covar>>=
+  dim(x)
+  head(x)
+@
+\item \emph{Genotype data}: SNPs genotype must be in the form of
+  an $n\times p$ matrix, where $n$ represents the number of subjects and $p$ the number of SNPs in the region of interest. For example, here we show the the first 6 entries of the first 10 SNPs of the genotype matrix included in \texttt{data\_mixed}:
+<<set.genofile>>=
+  dim(G)
+  head(G[,1:10])
+@
+\end{itemize}
+
+\section{Running CBMAT}
+\label{sec:Run-CBMAT}
+
+If CBMAT has been successfully installed, you can load it in an R session using 
+<<load.pkg>>=
+  library(CBMAT)
+@
+
+Here we provide two simple examples of performing score tests while fitting generalized linear models (glms) under the null hypothesis of no association.
+
+\subsection{Using CBMAT for a bivariate continous phenotype}
+\label{sec:mixed}
+
+When both traits are continuous, one can run CBMAT for a region-based association test with the following code:
+<<cont.score, eval=T>>=
+
+cont.score <- CBMAT(y1=y.gauss,
+                    fam1="gaussian()",
+                    y2=y.Gamma,
+                    fam2="Gamma(link=log)",
+                    x=x,
+                    G=G,
+                    copfit=c("Gaussian","Clayton","Frank","Gumbel"),
+                    weight=FALSE,
+                    weight.para1=1,
+                    weight.para2=25,
+                    pval.method="min")
+cont.score
+@
+
+\begin{itemize}
+\item |fam1| and |fam2| are characters specifying the error distributions and link functions to be used in each marginal model.
+
+\item |copfit| is a character vector that specifies the copula model(s) to use for modelling phenotypes dependence. The default option is to select between the Gaussian, Clayton, Frank and Gumbel copulas, based on AIC of the different models.
+
+\item |weight| is logical variable indication if weights should be used to increase power for rare variants.
+
+\item |weight.para1| and |weight.para2| are parameters of beta distribution used to simulate weights.
+
+\item |pval.method| is a character that specifies which method should be used to calculate p-value of score test. See [1] for further details. Can be one of the following:
+\begin{itemize}
+\item |pval.method = "min"|, optimal p-value (default)
+\item |pval.method = "Fischer"|, Fisher's method
+\item |pval.method = "MFKM"|, MFKM method
+\end{itemize}
+
+\end{itemize}
+
+\subsection{Using CBMAT for a mixed discrete-continuous bivariate phenotype}
+\label{sec:mixed}
+
+If one trait is discrete, it must be entered as the first phenotype, using a probit link function:
+<<mixed.score, eval=T>>=
+mixed.score <-CBMAT(y1=y.bin,
+                    fam1="binomial(link=probit)",
+                    y2=y.Gamma,
+                    fam2="Gamma(link=log)",
+                    x=x,
+                    G=G,
+                    copfit=c("Gaussian","Clayton","Frank","Gumbel"),
+                    weight=FALSE,
+                    weight.para1=1,
+                    weight.para2=25,
+                    pval.method="min")
+
+mixed.score
+@
+
+\begin{thebibliography}{9}
+\bibitem{Sun2019} Jianping Sun, Karim Oualkacha, Celia M.T. Greenwood, Lajmi Lakhal-CHaieb. \emph{Multivariate Association Test for Rare Variants Controlling for Cryptic and Family Relatedness}. Canadian Journal of Statistics, vol. 47, no. 1, Mar. 2019, pp. 90-107.
+
+\end{thebibliography}
+
+\end{document}

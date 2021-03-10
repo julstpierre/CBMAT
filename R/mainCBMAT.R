@@ -38,10 +38,7 @@
 #' @details When "weight=TRUE", a weighted test is used. The weight for each SNP is a beta fuction of the corresponding minor allele frequency (MAF). 
 #' There are two parameters, weight.para1 and weight.para2, for beta function. For example, when weight.para1=weight.para2=0.5, the corresponding weight is 1/sqrt(MAF*(1-MAF)); 
 #' when weight.para=1 and weight.para=25, the corresponding weight is the one suggested by SKAT.
-#' @return A list containing results of the association test
-#'   specified by the \code{method} parameter using the copula model for modelling primary-secondary dependency 
-#'   by the \code{copfit} parameter for the sampling mechanism \code{Design}. The
-#'   output list contains the following results:
+#' @return A list containing results of the association test. The output list contains the following results:
 #'   \itemize{
 #'   \item \code{p.value}: the p-value of the region-based association test
 #'   \item \code{gamma.y1}: the intercept and covariates estimates from the marginal model of the first phenotype
@@ -251,18 +248,18 @@ CBMAT <- function(y1=NULL,
   I.beta.theta <- hess[(r+1):(r+2*p),1:r]
   C <- cbind(-I.beta.theta%*%solve(I.theta.theta),diag(2*p))
   d2log.est <- C%*%UUT%*%t(C)
-  sqrt.var.est <- Re(sqrtm(d2log.est))
-  Y.tilde=solve(sqrt.var.est, dlog)
+  sqrt.var.est <- Re(expm::sqrtm(d2log.est))
+  Y.tilde=solve(sqrt.var.est, dlog, tol = 1e-20)
   
   f.rho <- function(rho){
 	  U1 <- 1/2*t(dlog)%*%matrix(rbind(cbind(W, rho*W),(cbind(rho*W,W))),nrow=2*p)%*%dlog
 	  U2 <- 1/2*sum(diag(d2log%*%matrix(rbind(cbind(W, rho*W),(cbind(rho*W,W))),nrow=2*p)))
 	  U=U1+U2
 	  matK <- sqrt.var.est%*%matrix(rbind(cbind(W, rho*W),(cbind(rho*W,W))),nrow=2*p)%*%sqrt.var.est
-	  lambda<-eigen(Re(sqrtm(-d2log))%*%matrix(rbind(cbind(W, rho*W),(cbind(rho*W,W))),nrow=2*p)%*%Re(sqrtm(-d2log)),symmetric = TRUE)$values
+	  lambda<-eigen(Re(expm::sqrtm(-d2log))%*%matrix(rbind(cbind(W, rho*W),(cbind(rho*W,W))),nrow=2*p)%*%Re(expm::sqrtm(-d2log)),symmetric = TRUE)$values
 	  lambda.est<-eigen(matK,symmetric = TRUE)$values
 	  values <- lambda.est / sum(lambda.est)
-	  pval.rho<-davies(2*U+sum(lambda),lambda.est)$Qq
+	  pval.rho<-CompQuadForm::davies(2*U+sum(lambda),lambda.est)$Qq
 	  K <- matK / sum(lambda.est)
 	  v.Q <- 2*mult(K,K,dim(matK)[1])
 	  Q <- t(Y.tilde) %*% K %*% Y.tilde
@@ -272,57 +269,64 @@ CBMAT <- function(y1=NULL,
   f.rho.out<-sapply(seq(0,.9,.1),function(rho) f.rho(rho))
   
   #----------- p.min  ---------#
-	pval.rho <- unlist(f.rho.out[1,])
-	p.min <- min(pval.rho)
+  if (pval.method=="min"){
+  	pval.rho <- unlist(f.rho.out[1,])
+  	p.min <- min(pval.rho)
+      
+  	V.Qs <- unlist(f.rho.out[7,])
+  	matK<-f.rho.out[8,]
+  	d=length(V.Qs)
+  	bb <- lapply(1:(length(V.Qs)-1), function(j)
+  			lapply(j:(length(V.Qs)-1), function(i, x) 
+  				2*mult(x[[j]], x[[i+1]], dim(x[[i]])[1]), x = matK
+  			)
+  		  )
+  	Cov.Gam <- NULL
+  	Cov.Gam <- diag(V.Qs)
     
-	V.Qs <- unlist(f.rho.out[7,])
-	matK<-f.rho.out[8,]
-	d=length(V.Qs)
-	bb <- lapply(1:(length(V.Qs)-1), function(j)
-			lapply(j:(length(V.Qs)-1), function(i, x) 
-				2*mult(x[[j]], x[[i+1]], dim(x[[i]])[1]), x = matK
-			)
-		  )
-	Cov.Gam <- NULL
-	Cov.Gam <- diag(V.Qs)
+  	for (j in 1:(length(V.Qs)-1))  {
+  	Cov.Gam[j,(1+j):length(V.Qs)] = unlist(bb[[j]])}
   
-	for (j in 1:(length(V.Qs)-1))  {
-	Cov.Gam[j,(1+j):length(V.Qs)] = unlist(bb[[j]])}
-
-	Cov.Gam = Cov.Gam + t(Cov.Gam) - diag(V.Qs)
-	Corr.Gam = cov2cor(Cov.Gam)
-	#Corr.Gam[Corr.Gam>1]<-1 #make sure correlation is not > 1
-	cop.R = normalCopula(P2p(Corr.Gam), dim = d, dispstr = "un")
-
-	pval.min <- 1 - pCopula(c(rep(1-p.min,d)), cop.R)
-	
+  	Cov.Gam = Cov.Gam + t(Cov.Gam) - diag(V.Qs)
+  	Corr.Gam = cov2cor(Cov.Gam)
+  	#Corr.Gam[Corr.Gam>1]<-1 #make sure correlation is not > 1
+  	cop.R = copula::normalCopula(copula::P2p(Corr.Gam), dim = d, dispstr = "un")
+  
+  	pval.min <- 1 - copula::pCopula(c(rep(1-p.min,d)), cop.R)
+  	p.value <- pval.min
+  }
 	#------------- p.MFKM -----------#
-	Qs <- unlist(f.rho.out[9,])
-	Q.sum = sum(Qs)
-	K.sum = Reduce("+", matK) 
-	values.sum = eigs(K.sum,matrix.rank(K.sum,method="qr"))$values #JStP02MAY20:Added method="qr" to remove warning from chol method. 
-	p.MFKM = davies(Q.sum,values.sum)$Qq
-	
+  if (pval.method=="MFKM"){
+    if (!requireNamespace(c("rARPACK","matrixcalc"), quietly = TRUE)) {
+      stop("Package \"rARPACK\" and \"matrixcalc\" needed for this method to work. Please install it.",
+           call. = FALSE)
+    }
+  	Qs <- unlist(f.rho.out[9,])
+  	Q.sum = sum(Qs)
+  	K.sum = Reduce("+", matK) 
+  	values.sum = rARPACK::eigs(K.sum,matrixcalc::matrix.rank(K.sum,method="qr"))$values #JStP02MAY20:Added method="qr" to remove warning from chol method. 
+  	p.MFKM = CompQuadForm::davies(Q.sum,values.sum)$Qq
+  	p.value <- p.MFKM
+  }
 	#----------- p.Q.Fisher  ---------#
-	values <- t(matrix(unlist(f.rho.out[10,]),nrow=(2*p)))
-	Q.values <- cbind(Qs,values)
-	Q.Fisher <- sum(apply(Q.values,1,function(x) -2*log(davies.SURV(x[1],x[-1]))))
-	p.Q.Fisher <- perm.Q.Fisher(Q.Fisher, matK, values, nb.perm=1000)$p.Q.Fisher.perm
-	
-	#----------- select p-value to output ---------#
-	if (pval.method=="min") p.value=pval.min
-	else if (pval.method=="Fischer") p.value=p.Q.Fisher
-	else if (pval.method=="MFKM") p.value=p.Q.MFKM
-
+  if (pval.method=="Fischer"){
+  	values <- t(matrix(unlist(f.rho.out[10,]),nrow=(2*p)))
+  	Q.values <- cbind(Qs,values)
+  	Q.Fisher <- sum(apply(Q.values,1,function(x) -2*log(davies.SURV(x[1],x[-1]))))
+  	p.Q.Fisher <- perm.Q.Fisher(Q.Fisher, matK, values, nb.perm=1000)$p.Q.Fisher.perm
+  	p.value <- p.Q.Fisher
+  }
+  
+  #------------ Output -----------------------#
   return(list("p.value"=p.value,
 			  "alpha"=pars.est[1],
-			  "tau"=BiCopPar2Tau(cop,pars.est[1]),
+			  "tau"=VineCopula::BiCopPar2Tau(cop,pars.est[1]),
 			  "gamma.y1"=pars.est[2:(k+1)],
 			  "gamma.y2"=pars.est[(k+2):(2*k+1)],
-			  "cop" = switch(cop, "1" = "Gaussian", 
-								  "3" = "Clayton", 
-								  "5" = "Franck",  
-								  "4" = "Gumbell")
+			  "cop" = ifelse(cop==1,"Gaussian", 
+								  ifelse(cop==3,"Clayton", 
+								  ifelse(cop==5,"Franck",  
+								  ifelse(cop==4,"Gumbell"))))
 			 )
 		)
 }

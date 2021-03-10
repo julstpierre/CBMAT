@@ -1,10 +1,3 @@
-#require(methods)
-#require(CompQuadForm)
-#require(magrittr)
-#require(copula)
-#require(matrixcalc)
-#require(rARPACK)
-
 #----------------------------------------------#
 # Calcul de la trace d'un produit de matrices
 #----------------------------------------------#
@@ -17,7 +10,7 @@ mult = function(A,B,n) {sum(sapply(1:n,mult.i,A=A,B=B))}
 ## l'approximation de davies en forme matricielle pour les integrales 
 #----------------------------------------------#
 davies.SURV.2 = function(i,q,values) {
-  qqq = davies(q[i],lambda=values)$Qq
+  qqq = CompQuadForm::davies(q[i],lambda=values)$Qq
   if (qqq > 1) qqq = 1
   if (qqq < 0) qqq =0 
   return(qqq)
@@ -257,38 +250,6 @@ joint_prob_test_mixed<-function(y1,y2,fam1,fam2,cov,G,gamma.y1,gamma.y2,beta,phi
   LL<-f.y2*((y1==0)* div.C.y2 + (y1==1)*(1-div.C.y2))
   return(LL)
 }
-
-#########################qq-plot distribution#####################################
-qqplot.dist<-function(U,lambda2){
-  
-    T<-sapply(1:m,function(k) 0.5*lambda2[k,]%*%rchisq(2*p,1)-0.5*sum(lambda[k,]))
-    qqplot(T,U,main="Distribution de la statistique U")
-    lines(T,T)
-}
-
-#########################qq-plot p-value#####################################
-
-qqplot.pvalue<-function(U,lambda2){
-  
-    p.value_U[k]<- sapply(1:m,function(k) davies(2*U[k]+sum(lambda[k,]),lambda2[k,])$Qq)
-  
-  u<-runif(m)
-  qqplot(-log(u,10),-log(p.value_U,10),main="Distribution des p-values pour U")
-  lines(-log(u,10),-log(u,10))
-  
-  Puissance_U<-cbind(length(p.value_U[p.value_U<0.10]),length(p.value_U[p.value_U<0.05]),length(p.value_U[p.value_U<0.01]))/m
-  colnames(Puissance_U)<-c("Puissance_0.1","Puissance_0.05","Puissance_0.01")
-  return(Puissance_U)
-}
-
-#An integer defining the bivariate copula family:
-#0 = independence copula
-#1 = Gaussian copula
-#2 = Student t copula (t-copula)
-#3 = Clayton copula
-#4 = Gumbel copula
-#5 = Frank copula
-#6 = Joe copula
 
 ###########MLE for fitting gamma, student and normal distributions################
 LL.student<-function(y,cov,pars){
