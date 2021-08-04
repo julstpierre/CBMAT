@@ -160,13 +160,10 @@ CBMAT <- function(y1=NULL,
   
 	if (fam2$family=="Gamma"){
 		F2<-function(mu,phi,df) pgamma(y2,shape=1/phi,scale=mu*phi)
-		f2<-function(mu,phi,df) dgamma(y2,shape=1/phi,scale=mu*phi)
 	} else if (fam2$family=="gaussian"){
 		F2<-function(mu,phi,df) pnorm(y2,mu,sqrt(phi))
-		f2<-function(mu,phi,df) dnorm(y2,mu,sqrt(phi))
 	} else if (fam2$family=="Student"){
 		F2<-function(mu,phi,df) LaplacesDemon::pst(y2,mu=mu,sigma=sqrt(phi^2*(df-2)/df),nu=df)
-		f2<-function(mu,phi,df) LaplacesDemon::dst(y2,mu=mu,sigma=sqrt(phi^2*(df-2)/df),nu=df)
 	}
 	
 	#Initial estimate for copula parameter
@@ -213,7 +210,7 @@ CBMAT <- function(y1=NULL,
 		outoptim<-optim(pars.init, negloglik,cop=cop,y1=y1,y2=y2,x=x,
 						fam1=fam1,fam2=fam2,g1.inv=g1.inv,g2.inv=g2.inv,
 						method = "L-BFGS-B", 
-						lower=c(lower.par.cop,rep(-Inf,2*k),-1,2.5),
+						lower=c(lower.par.cop,rep(-Inf,2*k+1),2.5),
 						upper=c(upper.par.cop,rep(Inf,2*k+2))
 						)
 		df2 <- if(is.null(df2.init)){NULL} else{outoptim$par[2*k+3]}
@@ -231,7 +228,7 @@ CBMAT <- function(y1=NULL,
 		outoptim<-optim(pars.init, negloglik,cop=cop,y1=y1,y2=y2,x=x,
 						fam1=fam1,fam2=fam2,g1.inv=g1.inv,g2.inv=g2.inv,
 						method = "L-BFGS-B", 
-						lower=c(lower.par.cop,rep(-Inf,2*k+1),-0.99,2.5,2.5),
+						lower=c(lower.par.cop,rep(-Inf,2*k+2),2.5,2.5),
 						upper=c(upper.par.cop,rep(Inf,2*k+4))
 						)
 		df1 <- if(is.null(df1.init)){NULL} else{outoptim$par[2*k+4]}
@@ -280,11 +277,11 @@ CBMAT <- function(y1=NULL,
   
   #----------- p.min  ---------#
   if (pval.method=="min"){
-  	pval.rho <- unlist(f.rho.out[1,])
+  	pval.rho <- unlist(f.rho.out["pval.rho",])
   	p.min <- min(pval.rho)
       
-  	V.Qs <- unlist(f.rho.out[7,])
-  	matK<-f.rho.out[8,]
+  	V.Qs <- unlist(f.rho.out["v.Q",])
+  	matK<-f.rho.out["matK",]
   	d=length(V.Qs)
   	bb <- lapply(1:(length(V.Qs)-1), function(j)
   			lapply(j:(length(V.Qs)-1), function(i, x) 
@@ -301,7 +298,7 @@ CBMAT <- function(y1=NULL,
   	Corr.Gam = cov2cor(Cov.Gam)
   	#Corr.Gam[Corr.Gam>1]<-1 #make sure correlation is not > 1
   	cop.R = copula::normalCopula(copula::P2p(Corr.Gam), dim = d, dispstr = "un")
-  
+    
   	pval.min <- 1 - copula::pCopula(c(rep(1-p.min,d)), cop.R)
   	p.value <- pval.min
   }
@@ -311,7 +308,7 @@ CBMAT <- function(y1=NULL,
       stop("Package \"rARPACK\" and \"matrixcalc\" needed for this method to work. Please install it.",
            call. = FALSE)
     }
-  	Qs <- unlist(f.rho.out[9,])
+  	Qs <- unlist(f.rho.out["Q",])
   	Q.sum = sum(Qs)
   	K.sum = Reduce("+", matK) 
   	values.sum = rARPACK::eigs(K.sum,matrixcalc::matrix.rank(K.sum,method="qr"))$values #JStP02MAY20:Added method="qr" to remove warning from chol method. 
@@ -320,7 +317,7 @@ CBMAT <- function(y1=NULL,
   }
 	#----------- p.Q.Fisher  ---------#
   if (pval.method=="Fisher"){
-  	values <- t(matrix(unlist(f.rho.out[10,]),nrow=(2*p)))
+  	values <- t(matrix(unlist(f.rho.out["values",]),nrow=(2*p)))
   	Q.values <- cbind(Qs,values)
   	Q.Fisher <- sum(apply(Q.values,1,function(x) -2*log(davies.SURV(x[1],x[-1]))))
   	p.Q.Fisher <- perm.Q.Fisher(Q.Fisher, matK, values, nb.perm=1000)$p.Q.Fisher.perm

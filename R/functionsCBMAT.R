@@ -1,13 +1,13 @@
 #----------------------------------------------#
-# Calcul de la trace d'un produit de matrices
+# Function to calculate trace of matrices product
 #----------------------------------------------#
 
 mult.i=function(i,A,B) {(A[i,]%*%B[,i])[1,1]}
 mult = function(A,B,n) {sum(sapply(1:n,mult.i,A=A,B=B))}
 
 #----------------------------------------------#
-## Calcul de la fonction de survie des formes quadratiques par 
-## l'approximation de davies en forme matricielle pour les integrales 
+# Function to calculate the survival function of quadratic forms by
+# the davies approximation in matrix form for integrals
 #----------------------------------------------#
 davies.SURV.2 = function(i,q,values) {
   qqq = CompQuadForm::davies(q[i],lambda=values)$Qq
@@ -18,7 +18,7 @@ davies.SURV.2 = function(i,q,values) {
 davies.SURV = function(q,values) {sapply(1:(length(q)),davies.SURV.2,q=q,values=values)}
 
 #----------------------------------------------------#
-## perm.Q.Fisher
+# Function to obtain p-values by permutation (Fisher's method)
 #----------------------------------------------------#
 perm.Q.Fisher <- function(Q.Fisher, matK, values, nb.perm=1000){
   
@@ -48,8 +48,8 @@ perm.Q.Fisher <- function(Q.Fisher, matK, values, nb.perm=1000){
 }
 
 #--------------------------------------------------------------------#
-#This functions computes the negative log-likehood for estimation of 
-#parameters under H0
+# This functions computes the negative log-likehood for estimation of 
+# parameters under H0
 #--------------------------------------------------------------------#
 negloglik <- function(pars,cop,y1,y2,x,fam1,fam2,g1.inv,g2.inv){
   
@@ -62,36 +62,34 @@ negloglik <- function(pars,cop,y1,y2,x,fam1,fam2,g1.inv,g2.inv){
   mu2=g2.inv(c(x%*%gamma.y2))
   
   if (fam1$link=="probit"){
-	log.phi2<-pars[2*k+2]
-	phi2<-exp(log.phi2)
-	if (fam2$family=="Student"){
-		df2=pars[r]
-		if (df2<=2){return(Inf)}
-	} else {
-		df2=NA
-	}
-	LL<-joint_prob_mixed(y1,y2,fam1,fam2,mu1,mu2,phi2,df2,alpha,cop)
+    log.phi2<-pars[2*k+2]
+    phi2<-exp(log.phi2)
+    if (fam2$family=="Student"){
+      df2=pars[r]
+    } else {
+      df2=NA
+    }
+    LL<-joint_prob_mixed(y1,y2,fam1,fam2,mu1,mu2,phi2,df2,alpha,cop)
   } else {
-	log.phi1<-pars[2*k+2]
-	log.phi2<-pars[2*k+3]
-	phi1<-exp(log.phi1)
-	phi2<-exp(log.phi2)
-	if (fam1$family=="Student"){
-		df1=pars[2*k+4]
-		if (df1<=2){return(Inf)}
-	} else {
-		df1=NA
-	}
-	if (fam2$family=="Student"){
-		df2=pars[r]
-		if (df2<=2){return(Inf)}
-	} else {
-		df2=NA
-	}
-	LL<-joint_prob(y1,y2,fam1,fam2,mu1,mu2,phi1,phi2,df1,df2,alpha,cop)
+    log.phi1<-pars[2*k+2]
+    log.phi2<-pars[2*k+3]
+    phi1<-exp(log.phi1)
+    phi2<-exp(log.phi2)
+    if (fam1$family=="Student"){
+      df1=pars[2*k+4]
+    } else {
+      df1=NA
+    }
+    if (fam2$family=="Student"){
+      df2=pars[r]
+    } else {
+      df2=NA
+    }
+    LL<-joint_prob(y1,y2,fam1,fam2,mu1,mu2,phi1,phi2,df1,df2,alpha,cop)
   }
   
-  return(-sum(log(LL)))
+  if (-sum(log(LL)) == Inf) {return (.Machine$double.xmax)}
+  else {return(-sum(log(LL)))}
 }
 
 #--------------------------------------------------------------------#
@@ -108,20 +106,20 @@ negloglik.hessian<- function(pars,cop,y1,y2,cov,G,fam1,fam2,g1.inv,g2.inv){
   gamma.y2<-pars[(k+2):(2*k+1)]
   
   if (fam1$link=="probit"){
-	phi2<-pars[2*k+2]
-	if (fam2$family=="Student"){df2=pars[r]} else{df2=NA}
-	beta<-pars[(r+1):(r+2*p)]
-	LL<-joint_prob_test_mixed(y1,y2,fam1,fam2,cov,G,gamma.y1,gamma.y2,beta,phi2,df2,alpha,cop,g1.inv,g2.inv)
+    phi2<-pars[2*k+2]
+    if (fam2$family=="Student"){df2=pars[r]} else{df2=NA}
+    beta<-pars[(r+1):(r+2*p)]
+    LL<-joint_prob_test_mixed(y1,y2,fam1,fam2,cov,G,gamma.y1,gamma.y2,beta,phi2,df2,alpha,cop,g1.inv,g2.inv)
   } else {
-	phi1<-pars[2*k+2]
-	phi2<-pars[2*k+3]
-	if (fam1$family=="Student"){df1=pars[2*k+4]} else{df1=NA}
-	if (fam2$family=="Student"){df2=pars[r]} else{df2=NA}
-	beta<-pars[(r+1):(r+2*p)]
-	LL<-joint_prob_test(y1,y2,fam1,fam2,cov,G,gamma.y1,gamma.y2,beta,phi1,phi2,df1,df2,alpha,cop,g1.inv,g2.inv)
+    phi1<-pars[2*k+2]
+    phi2<-pars[2*k+3]
+    if (fam1$family=="Student"){df1=pars[2*k+4]} else{df1=NA}
+    if (fam2$family=="Student"){df2=pars[r]} else{df2=NA}
+    beta<-pars[(r+1):(r+2*p)]
+    LL<-joint_prob_test(y1,y2,fam1,fam2,cov,G,gamma.y1,gamma.y2,beta,phi1,phi2,df1,df2,alpha,cop,g1.inv,g2.inv)
   }
-
-	return(-sum(log(LL)))   
+  
+  return(-sum(log(LL)))   
 }
 
 
@@ -138,8 +136,8 @@ joint_prob<-function(y1,y2,fam1,fam2,mu1,mu2,phi1,phi2,df1,df2,alpha,cop){
     F.y1<-pnorm(y1,mu1,sqrt(phi1))
     f.y1<-dnorm(y1,mu1,sqrt(phi1))
   } else if (fam1$family=="Student"){
-	F.y1<-LaplacesDemon::pst(y1,mu1,sigma=sqrt(phi1^2*(df1-2)/df1),nu=df1)
-	f.y1<-LaplacesDemon::dst(y1,mu1,sigma=sqrt(phi1^2*(df1-2)/df1),nu=df1)
+    F.y1<-LaplacesDemon::pst(y1,mu1,sigma=sqrt(phi1^2*(df1-2)/df1),nu=df1)
+    f.y1<-LaplacesDemon::dst(y1,mu1,sigma=sqrt(phi1^2*(df1-2)/df1),nu=df1)
   }
   
   if (fam2$family=="Gamma"){
@@ -149,8 +147,8 @@ joint_prob<-function(y1,y2,fam1,fam2,mu1,mu2,phi1,phi2,df1,df2,alpha,cop){
     F.y2<-pnorm(y2,mu2,sqrt(phi2))
     f.y2<-dnorm(y2,mu2,sqrt(phi2))
   } else if (fam2$family=="Student"){
-	F.y2<-LaplacesDemon::pst(y2,mu2,sigma=sqrt(phi2^2*(df2-2)/df2),nu=df2)
-	f.y2<-LaplacesDemon::dst(y2,mu2,sigma=sqrt(phi2^2*(df2-2)/df2),nu=df2)
+    F.y2<-LaplacesDemon::pst(y2,mu2,sigma=sqrt(phi2^2*(df2-2)/df2),nu=df2)
+    f.y2<-LaplacesDemon::dst(y2,mu2,sigma=sqrt(phi2^2*(df2-2)/df2),nu=df2)
   }
   
   LL<-f.y1*f.y2*VineCopula::BiCopPDF(F.y1,F.y2,cop,alpha)
@@ -174,8 +172,8 @@ joint_prob_mixed<-function(y1,y2,fam1,fam2,mu1,mu2,phi2,df2,alpha,cop){
     F.y2<-pnorm(y2,mu2,sqrt(phi2))
     f.y2<-dnorm(y2,mu2,sqrt(phi2))
   } else if (fam2$family=="Student"){
-	F.y2<-LaplacesDemon::pst(y2,mu2,sigma=sqrt(phi2^2*(df2-2)/df2),nu=df2)
-	f.y2<-LaplacesDemon::dst(y2,mu2,sigma=sqrt(phi2^2*(df2-2)/df2),nu=df2)
+    F.y2<-LaplacesDemon::pst(y2,mu2,sigma=sqrt(phi2^2*(df2-2)/df2),nu=df2)
+    f.y2<-LaplacesDemon::dst(y2,mu2,sigma=sqrt(phi2^2*(df2-2)/df2),nu=df2)
   }
   
   div.C.y2<-VineCopula::BiCopHfunc2(F.y1,F.y2,cop,alpha)
@@ -201,8 +199,8 @@ joint_prob_test<-function(y1,y2,fam1,fam2,cov,G,gamma.y1,gamma.y2,beta,phi1,phi2
     F.y1<-pnorm(y1,mu1,sqrt(phi1))
     f.y1<-dnorm(y1,mu1,sqrt(phi1))
   } else if (fam1$family=="Student"){
-	F.y1<-LaplacesDemon::pst(y1,mu1,sigma=sqrt(phi1^2*(df1-2)/df1),nu=df1)
-	f.y1<-LaplacesDemon::dst(y1,mu1,sigma=sqrt(phi1^2*(df1-2)/df1),nu=df1)
+    F.y1<-LaplacesDemon::pst(y1,mu1,sigma=sqrt(phi1^2*(df1-2)/df1),nu=df1)
+    f.y1<-LaplacesDemon::dst(y1,mu1,sigma=sqrt(phi1^2*(df1-2)/df1),nu=df1)
   }
   
   if (fam2$family=="Gamma"){
@@ -212,8 +210,8 @@ joint_prob_test<-function(y1,y2,fam1,fam2,cov,G,gamma.y1,gamma.y2,beta,phi1,phi2
     F.y2<-pnorm(y2,mu2,sqrt(phi2))
     f.y2<-dnorm(y2,mu2,sqrt(phi2))
   } else if (fam2$family=="Student"){
-	F.y2<-LaplacesDemon::pst(y2,mu2,sigma=sqrt(phi2^2*(df2-2)/df2),nu=df2)
-	f.y2<-LaplacesDemon::dst(y2,mu2,sigma=sqrt(phi2^2*(df2-2)/df2),nu=df2)
+    F.y2<-LaplacesDemon::pst(y2,mu2,sigma=sqrt(phi2^2*(df2-2)/df2),nu=df2)
+    f.y2<-LaplacesDemon::dst(y2,mu2,sigma=sqrt(phi2^2*(df2-2)/df2),nu=df2)
   }
   
   LL<-f.y1*f.y2*VineCopula::BiCopPDF(F.y1,F.y2,cop,alpha)
@@ -242,8 +240,8 @@ joint_prob_test_mixed<-function(y1,y2,fam1,fam2,cov,G,gamma.y1,gamma.y2,beta,phi
     F.y2<-pnorm(y2,mu2,sqrt(phi2))
     f.y2<-dnorm(y2,mu2,sqrt(phi2))
   } else if (fam2$family=="Student"){
-	F.y2<-LaplacesDemon::pst(y2,mu2,sigma=sqrt(phi2^2*(df2-2)/df2),nu=df2)
-	f.y2<-LaplacesDemon::dst(y2,mu2,sigma=sqrt(phi2^2*(df2-2)/df2),nu=df2)
+    F.y2<-LaplacesDemon::pst(y2,mu2,sigma=sqrt(phi2^2*(df2-2)/df2),nu=df2)
+    f.y2<-LaplacesDemon::dst(y2,mu2,sigma=sqrt(phi2^2*(df2-2)/df2),nu=df2)
   }
   
   div.C.y2<-VineCopula::BiCopHfunc2(F.y1,F.y2,cop,alpha,check.pars=FALSE) #JStP 11NOV2019 : added check.pars=FALSE to allow calculation of hessian when copula parameter is close to treshold
@@ -282,19 +280,19 @@ estim<-function(y,x,fam){
     reg<-glm(y~-1+x)
     gamma.init<-reg$coefficients
     optim.st<-try(optim(c(10,gamma.init),LL.student,y=y,cov=x,method = "L-BFGS-B",lower=c(2.5,rep(-Inf,length(gamma.init)))),silent=TRUE)
-	if (class(optim.st)=="try-error"){
-		log.LL <- NA
-		aic = NA
-		df <- NA
-		coefficients<- NA
-		phi <- NA
-	} else{
-		log.LL <- -optim.st$value
-		aic = -2*log.LL+2*(length(optim.st$par)+1)
-		df <-optim.st$par[1]
-		coefficients<-optim.st$par[-1]
-		phi <- sd(y)
-	}
+    if (class(optim.st)=="try-error"){
+      log.LL <- NA
+      aic = NA
+      df <- NA
+      coefficients<- NA
+      phi <- NA
+    } else{
+      log.LL <- -optim.st$value
+      aic = -2*log.LL+2*(length(optim.st$par)+1)
+      df <-optim.st$par[1]
+      coefficients<-optim.st$par[-1]
+      phi <- sd(y)
+    }
   }
   else {
     aic=NA
@@ -313,9 +311,9 @@ best.model <- function(y,x){
   model.gamma <- estim(y,x,fam="Gamma(link=log)")
   model.st <- estim(y,x,fam="Student(link=)")
   min.aic <- min(model.norm$aic
-                ,model.gamma$aic
-                ,model.st$aic
-                ,na.rm=T)
+                 ,model.gamma$aic
+                 ,model.st$aic
+                 ,na.rm=T)
   
   if (model.norm$aic==min.aic){
     return (list(family=model.norm$fam,aic=model.norm$aic,coefficients=model.norm$coefficients,phi=model.norm$phi))
